@@ -1,2 +1,0 @@
-# daenkyweb.github.io
-Homepage
