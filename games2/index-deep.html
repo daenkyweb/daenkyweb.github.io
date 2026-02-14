@@ -1,0 +1,1099 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Deep Reflection Box Game</title>
+  <style>
+    :root{
+      --bg0:#0b1020;
+      --bg1:#0f1730;
+      --card:#141c38cc;
+      --card2:#111831cc;
+      --text:#e8ecff;
+      --muted:#aab3d6;
+      --accent:#7c5cff;
+      --accent2:#2ee59d;
+      --danger:#ff4d6d;
+      --border:rgba(255,255,255,.10);
+      --shadow: 0 18px 50px rgba(0,0,0,.45);
+      --radius:22px;
+      --glass: blur(14px) saturate(135%);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    /* Themes (per sesi) via data-theme on <body> */
+    body[data-theme="fun"]{
+      --accent:#ff4fd8;
+      --accent2:#ffd66d;
+      --bg0:#120822;
+      --bg1:#1a0d30;
+    }
+    body[data-theme="warm"]{
+      --accent:#ff8a00;
+      --accent2:#ffd36f;
+      --bg0:#0f0b07;
+      --bg1:#1a130d;
+    }
+    body[data-theme="deep"]{
+      --accent:#7c5cff;
+      --accent2:#2ee59d;
+      --bg0:#070b16;
+      --bg1:#0b1430;
+    }
+    body[data-theme="closing"]{
+      --accent:#66ccff;
+      --accent2:#b7ffda;
+      --bg0:#061018;
+      --bg1:#091a23;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(1200px 800px at 20% 10%, rgba(124,92,255,.25), transparent 55%),
+        radial-gradient(900px 700px at 80% 20%, rgba(46,229,157,.18), transparent 60%),
+        radial-gradient(900px 700px at 30% 90%, rgba(255,77,109,.12), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
+    a{color:inherit}
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:28px 18px 64px;
+    }
+    header{
+      display:flex;
+      gap:16px;
+      align-items:flex-start;
+      justify-content:space-between;
+      margin-bottom:18px;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    h1{
+      margin:0;
+      font-size:22px;
+      letter-spacing:.2px;
+      font-weight:750;
+    }
+    .subtitle{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+      max-width:780px;
+    }
+    .pillrow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border-radius:999px;
+      box-shadow:0 10px 26px rgba(0,0,0,.18);
+      backdrop-filter:var(--glass);
+      font-size:12px;
+      color:var(--muted);
+      user-select:none;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:99px;
+      background:var(--accent);
+      box-shadow:0 0 0 4px rgba(124,92,255,.12);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:16px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+      header{flex-direction:column;align-items:stretch}
+      .pillrow{justify-content:flex-start}
+    }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      box-shadow:var(--shadow);
+      backdrop-filter:var(--glass);
+      padding:16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(520px 260px at 20% 0%, rgba(255,255,255,.08), transparent 60%),
+                  radial-gradient(520px 260px at 80% 20%, rgba(255,255,255,.05), transparent 60%);
+      pointer-events:none;
+      opacity:.8;
+    }
+    .card > *{position:relative; z-index:1}
+
+    .card h2{
+      margin:0 0 10px;
+      font-size:14px;
+      font-weight:750;
+      letter-spacing:.2px;
+      color:#f2f4ff;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .tag{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      color:var(--muted);
+      background:rgba(0,0,0,.15);
+    }
+
+    .row{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    }
+    label{
+      font-size:12px; color:var(--muted);
+      display:flex; flex-direction:column; gap:6px;
+      min-width:180px;
+      flex:1;
+    }
+    input, textarea, select{
+      width:100%;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.18);
+      color:var(--text);
+      outline:none;
+      font-size:13px;
+    }
+    textarea{min-height:120px; resize:vertical; line-height:1.35}
+    input::placeholder, textarea::placeholder{color:rgba(170,179,214,.55)}
+    select{cursor:pointer}
+
+    .btnrow{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px}
+    button{
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:14px;
+      cursor:pointer;
+      font-weight:650;
+      font-size:13px;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+      backdrop-filter:var(--glass);
+      user-select:none;
+    }
+    button:hover{transform:translateY(-1px); border-color:rgba(255,255,255,.18)}
+    button:active{transform:translateY(0px) scale(.99)}
+    button.primary{
+      border-color:rgba(124,92,255,.35);
+      background:linear-gradient(180deg, rgba(124,92,255,.32), rgba(124,92,255,.12));
+      box-shadow:0 18px 40px rgba(124,92,255,.18);
+    }
+    button.good{
+      border-color:rgba(46,229,157,.35);
+      background:linear-gradient(180deg, rgba(46,229,157,.22), rgba(46,229,157,.10));
+      box-shadow:0 18px 40px rgba(46,229,157,.14);
+    }
+    button.danger{
+      border-color:rgba(255,77,109,.35);
+      background:linear-gradient(180deg, rgba(255,77,109,.22), rgba(255,77,109,.08));
+      box-shadow:0 18px 40px rgba(255,77,109,.12);
+    }
+    button:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    .divider{
+      height:1px; background:var(--border);
+      margin:14px 0;
+    }
+
+    .big{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    .stage{
+      padding:16px;
+      border-radius:var(--radius);
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(0,0,0,.22), rgba(0,0,0,.10));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+      min-height:220px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      position:relative;
+      overflow:hidden;
+    }
+    .stage:after{
+      content:"";
+      position:absolute;
+      inset:-30px;
+      background:
+        radial-gradient(500px 260px at 12% 10%, rgba(255,255,255,.08), transparent 60%),
+        radial-gradient(520px 320px at 90% 70%, rgba(255,255,255,.05), transparent 65%);
+      opacity:.75;
+      pointer-events:none;
+    }
+    .stage > *{position:relative; z-index:1}
+
+    .who{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .who strong{color:var(--text)}
+    .q{
+      margin:12px 0 0;
+      font-size:22px;
+      line-height:1.25;
+      font-weight:760;
+      letter-spacing:.2px;
+    }
+    .meta{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:12px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .progress{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .bar{
+      width:220px;
+      height:10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.18);
+      overflow:hidden;
+    }
+    .bar > i{
+      display:block;
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius:999px;
+      transition:width .2s ease;
+    }
+
+    .list{
+      margin:0;
+      padding-left:18px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.4;
+      max-height:210px;
+      overflow:auto;
+    }
+    .kbd{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:2px 6px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.18);
+      color:var(--muted);
+    }
+
+    .toast{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      z-index:50;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.35);
+      backdrop-filter:var(--glass);
+      box-shadow:0 18px 46px rgba(0,0,0,.35);
+      color:var(--text);
+      font-size:12px;
+      display:none;
+      max-width:min(420px, calc(100vw - 36px));
+    }
+  </style>
+</head>
+
+<body data-theme="deep">
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Deep Reflection Box Game</h1>
+        <p class="subtitle">
+          Masukkan peserta, buat sesi + daftar pertanyaan, lalu <b>Spin</b> untuk memilih pertanyaan acak.
+          Pertanyaan yang sudah keluar tidak akan muncul lagi <span class="kbd">per sesi</span>.
+        </p>
+      </div>
+      <div class="pillrow">
+        <div class="pill"><span class="dot"></span> Mode: <b id="pillTheme" style="color:var(--text)">Deep</b></div>
+        <div class="pill">Shortcut: <span class="kbd">Space</span> spin</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Game Stage -->
+      <section class="card">
+        <h2>🎡 Panggung Game <span class="tag" id="activeSessionTag">Belum ada sesi</span></h2>
+
+        <div class="stage" aria-live="polite">
+          <div class="who">
+            <span>Giliran:</span>
+            <strong id="turnName">—</strong>
+            <span id="turnHint"></span>
+          </div>
+
+          <div>
+            <div class="q" id="questionText">Buat sesi dulu di panel kanan, lalu pilih sesi aktif.</div>
+          </div>
+
+          <div class="meta">
+            <div class="progress">
+              <span>Progress sesi:</span>
+              <div class="bar" role="progressbar" aria-label="Progress sesi">
+                <i id="barFill"></i>
+              </div>
+              <span><b id="usedCount">0</b>/<span id="totalCount">0</span> terpakai</span>
+            </div>
+            <div>
+              <span>Timer jawaban:</span>
+              <b id="timerLabel">00:00</b>
+            </div>
+          </div>
+        </div>
+
+        <div class="btnrow">
+          <button class="primary" id="btnSpin" disabled>Spin Pertanyaan</button>
+          <button class="good" id="btnNextTurn" disabled>Next Peserta</button>
+          <button id="btnStart1m" disabled>Timer 1 Menit</button>
+          <button id="btnStart45s" disabled>Timer 45 Detik</button>
+          <button class="danger" id="btnResetSession" disabled>Reset Pertanyaan Sesi</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <h2>📌 Pertanyaan yang sudah keluar <span class="tag">per sesi</span></h2>
+        <ol class="list" id="usedList"></ol>
+      </section>
+
+      <!-- RIGHT: Setup Panels -->
+      <aside class="card">
+        <h2>⚙️ Setup Peserta</h2>
+
+        <div class="row">
+          <label>
+            Jumlah peserta
+            <input type="number" id="inpCount" min="1" max="30" placeholder="mis. 6" />
+          </label>
+          <label>
+            Tema tampilan (global mengikuti sesi aktif)
+            <select id="selTheme">
+              <option value="fun">Fun (Lucu)</option>
+              <option value="warm">Warm (Hangat)</option>
+              <option value="deep" selected>Deep (Dalam)</option>
+              <option value="closing">Closing (Penutup)</option>
+            </select>
+          </label>
+        </div>
+
+        <label style="margin-top:8px">
+          Nama peserta (1 baris = 1 nama) — opsional (kalau kosong: Peserta 1..n)
+          <textarea id="taNames" placeholder="Contoh:
+Rizky
+Adit
+Salsa
+..."></textarea>
+        </label>
+
+        <div class="btnrow">
+          <button class="good" id="btnSavePeople">Simpan Peserta</button>
+          <button class="danger" id="btnClearAll">Reset Semua Data</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <h2>🧩 Buat Sesi & Pertanyaan</h2>
+        <div class="row">
+          <label>
+            Nama sesi
+            <input id="inpSessionName" placeholder="mis. Box 0: Lucu / Keluarga / Karier / ..." />
+          </label>
+          <label>
+            Tema sesi
+            <select id="selSessionTheme">
+              <option value="fun">Fun (Lucu)</option>
+              <option value="warm">Warm (Hangat)</option>
+              <option value="deep" selected>Deep (Dalam)</option>
+              <option value="closing">Closing (Penutup)</option>
+            </select>
+          </label>
+        </div>
+
+        <label style="margin-top:8px">
+          Daftar pertanyaan (1 baris = 1 pertanyaan)
+          <textarea id="taQuestions" placeholder="Contoh:
+Kalau hidupmu sekarang judul sinetron, judulnya apa?
+Apa arti rumah bagimu?
+..."></textarea>
+        </label>
+
+        <div class="btnrow">
+          <button class="primary" id="btnAddSession">Tambah Sesi</button>
+          <button id="btnUpdateSession" disabled>Update Sesi Terpilih</button>
+          <button class="danger" id="btnDeleteSession" disabled>Hapus Sesi Terpilih</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <h2>📚 Daftar Sesi</h2>
+        <div class="row">
+          <label>
+            Pilih sesi aktif
+            <select id="selSessions"></select>
+          </label>
+        </div>
+
+        <div class="btnrow">
+          <button class="good" id="btnSetActive" disabled>Jadikan Aktif</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <p class="subtitle" style="margin:0">
+          Catatan: Data otomatis tersimpan di perangkat ini (localStorage). Kalau pindah HP/laptop, perlu salin ulang.
+        </p>
+      </aside>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---------- Utilities ----------
+    const $ = (id) => document.getElementById(id);
+    const now = () => new Date().toISOString();
+
+    function toast(msg){
+      const t = $("toast");
+      t.textContent = msg;
+      t.style.display = "block";
+      clearTimeout(toast._tm);
+      toast._tm = setTimeout(()=> t.style.display="none", 2400);
+    }
+
+    function safeLines(text){
+      return (text || "")
+        .split("\n")
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+    function shuffle(arr){
+      for(let i=arr.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]] = [arr[j],arr[i]];
+      }
+      return arr;
+    }
+
+    // ---------- Storage Model ----------
+    const KEY = "drbg_state_v1";
+
+    const defaultState = () => ({
+      people: {
+        count: 0,
+        names: [],
+        turnIndex: 0,
+        updatedAt: now()
+      },
+      sessions: [], // {id,name,theme,questions:[...], usedIdx:Set-like array, createdAt, updatedAt}
+      activeSessionId: null,
+      uiTheme: "deep",
+      updatedAt: now()
+    });
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(KEY);
+        if(!raw) return defaultState();
+        const s = JSON.parse(raw);
+
+        // migrate / normalize
+        s.people ??= {count:0,names:[],turnIndex:0,updatedAt:now()};
+        s.sessions ??= [];
+        s.uiTheme ??= "deep";
+        s.activeSessionId ??= null;
+
+        // normalize usedIdx to array
+        for(const sess of s.sessions){
+          sess.usedIdx ??= [];
+          sess.questions ??= [];
+          sess.theme ??= "deep";
+        }
+        return s;
+      }catch(e){
+        console.warn(e);
+        return defaultState();
+      }
+    }
+
+    function saveState(){
+      state.updatedAt = now();
+      localStorage.setItem(KEY, JSON.stringify(state));
+      render();
+    }
+
+    function uid(){
+      return Math.random().toString(16).slice(2) + "-" + Date.now().toString(16);
+    }
+
+    let state = loadState();
+
+    // ---------- Derived ----------
+    function getActiveSession(){
+      return state.sessions.find(s => s.id === state.activeSessionId) || null;
+    }
+
+    function getSelectedSessionId(){
+      const sel = $("selSessions");
+      return sel?.value || null;
+    }
+
+    function computeProgress(sess){
+      const total = sess?.questions?.length || 0;
+      const used = sess?.usedIdx?.length || 0;
+      const pct = total ? Math.round((used/total)*100) : 0;
+      return {total, used, pct};
+    }
+
+    // ---------- Game Logic ----------
+    function ensurePeople(){
+      if(state.people.count <= 0){
+        toast("Isi jumlah peserta dulu.");
+        return false;
+      }
+      return true;
+    }
+
+    function ensureSessionActive(){
+      const sess = getActiveSession();
+      if(!sess){
+        toast("Pilih & aktifkan sesi dulu.");
+        return false;
+      }
+      if(!sess.questions.length){
+        toast("Sesi aktif belum punya pertanyaan.");
+        return false;
+      }
+      return true;
+    }
+
+    function currentTurnName(){
+      if(state.people.count <= 0) return "—";
+      const idx = clamp(state.people.turnIndex || 0, 0, state.people.count-1);
+      const names = state.people.names || [];
+      return names[idx] || `Peserta ${idx+1}`;
+    }
+
+    function nextTurn(){
+      if(!ensurePeople()) return;
+      state.people.turnIndex = (state.people.turnIndex + 1) % state.people.count;
+      saveState();
+    }
+
+    function spinQuestion(){
+      if(!ensurePeople() || !ensureSessionActive()) return;
+
+      const sess = getActiveSession();
+      const total = sess.questions.length;
+      const used = new Set(sess.usedIdx);
+
+      if(used.size >= total){
+        toast("Semua pertanyaan sesi ini sudah keluar.");
+        return;
+      }
+
+      // pick random index not used
+      let idx;
+      let guard = 0;
+      do{
+        idx = Math.floor(Math.random()*total);
+        guard++;
+      }while(used.has(idx) && guard < 5000);
+
+      used.add(idx);
+      sess.usedIdx = Array.from(used);
+      sess.lastQuestionIdx = idx;
+      sess.updatedAt = now();
+
+      // Advance turn automatically for smooth flow? (Optional)
+      // We'll NOT auto-next; host can press Next Peserta.
+      saveState();
+
+      // Little dramatic shuffle effect:
+      animateSpin(sess.questions[idx]);
+    }
+
+    function animateSpin(finalText){
+      const el = $("questionText");
+      const sess = getActiveSession();
+      if(!sess) return;
+
+      const pool = sess.questions.filter(Boolean);
+      const rounds = 14;
+      let i = 0;
+
+      const fast = 55;
+      const slow = 110;
+
+      clearInterval(animateSpin._tm);
+      animateSpin._tm = setInterval(()=>{
+        i++;
+        const sample = pool[Math.floor(Math.random()*pool.length)] || "…";
+        el.textContent = sample;
+        if(i === Math.floor(rounds/2)) {
+          clearInterval(animateSpin._tm);
+          animateSpin._tm = setInterval(()=>{
+            i++;
+            const sample2 = pool[Math.floor(Math.random()*pool.length)] || "…";
+            el.textContent = sample2;
+            if(i >= rounds){
+              clearInterval(animateSpin._tm);
+              el.textContent = finalText;
+            }
+          }, slow);
+        }
+      }, fast);
+    }
+
+    function resetSessionUsed(){
+      const sess = getActiveSession();
+      if(!sess) return;
+      sess.usedIdx = [];
+      sess.lastQuestionIdx = null;
+      sess.updatedAt = now();
+      saveState();
+      toast("Pertanyaan sesi direset.");
+    }
+
+    // ---------- Timer ----------
+    let timer = { t:null, remain:0, running:false };
+
+    function fmtTime(sec){
+      sec = Math.max(0, Math.floor(sec));
+      const mm = String(Math.floor(sec/60)).padStart(2,"0");
+      const ss = String(sec%60).padStart(2,"0");
+      return `${mm}:${ss}`;
+    }
+
+    function stopTimer(){
+      if(timer.t) clearInterval(timer.t);
+      timer.t = null;
+      timer.running = false;
+      timer.remain = 0;
+      $("timerLabel").textContent = "00:00";
+    }
+
+    function startTimer(seconds){
+      seconds = Math.max(1, Math.floor(seconds));
+      timer.remain = seconds;
+      timer.running = true;
+      $("timerLabel").textContent = fmtTime(timer.remain);
+
+      if(timer.t) clearInterval(timer.t);
+      timer.t = setInterval(()=>{
+        timer.remain--;
+        $("timerLabel").textContent = fmtTime(timer.remain);
+        if(timer.remain <= 0){
+          clearInterval(timer.t);
+          timer.t = null;
+          timer.running = false;
+          toast("Waktu habis.");
+          // small beep using WebAudio
+          try{
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = "sine";
+            o.frequency.value = 880;
+            o.connect(g); g.connect(ctx.destination);
+            g.gain.setValueAtTime(0.001, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+            o.start(); o.stop(ctx.currentTime + 0.28);
+          }catch(e){}
+        }
+      }, 1000);
+    }
+
+    // ---------- Sessions CRUD ----------
+    function addSession(){
+      const name = $("inpSessionName").value.trim();
+      const theme = $("selSessionTheme").value;
+      const questions = safeLines($("taQuestions").value);
+
+      if(!name){
+        toast("Nama sesi wajib diisi.");
+        return;
+      }
+      if(questions.length < 1){
+        toast("Masukkan minimal 1 pertanyaan.");
+        return;
+      }
+
+      const sess = {
+        id: uid(),
+        name,
+        theme,
+        questions,
+        usedIdx: [],
+        createdAt: now(),
+        updatedAt: now()
+      };
+      state.sessions.push(sess);
+
+      // auto-select in dropdown
+      state.activeSessionId ??= sess.id;
+
+      $("inpSessionName").value = "";
+      $("taQuestions").value = "";
+      $("selSessionTheme").value = theme;
+
+      saveState();
+      toast("Sesi ditambahkan.");
+    }
+
+    function updateSelectedSession(){
+      const id = getSelectedSessionId();
+      if(!id) return;
+
+      const sess = state.sessions.find(s => s.id === id);
+      if(!sess) return;
+
+      const name = $("inpSessionName").value.trim();
+      const theme = $("selSessionTheme").value;
+      const questions = safeLines($("taQuestions").value);
+
+      if(!name){
+        toast("Nama sesi wajib diisi.");
+        return;
+      }
+      if(questions.length < 1){
+        toast("Masukkan minimal 1 pertanyaan.");
+        return;
+      }
+
+      sess.name = name;
+      sess.theme = theme;
+      sess.questions = questions;
+
+      // If questions shrink, drop invalid used indices
+      sess.usedIdx = (sess.usedIdx || []).filter(i => i >= 0 && i < sess.questions.length);
+      sess.updatedAt = now();
+
+      saveState();
+      toast("Sesi diupdate.");
+    }
+
+    function deleteSelectedSession(){
+      const id = getSelectedSessionId();
+      if(!id) return;
+
+      const idx = state.sessions.findIndex(s => s.id === id);
+      if(idx < 0) return;
+
+      const wasActive = (state.activeSessionId === id);
+      state.sessions.splice(idx, 1);
+
+      if(wasActive){
+        state.activeSessionId = state.sessions[0]?.id || null;
+      }
+      saveState();
+      toast("Sesi dihapus.");
+    }
+
+    function setActiveSession(){
+      const id = getSelectedSessionId();
+      if(!id) return;
+
+      state.activeSessionId = id;
+
+      // apply theme of session
+      const sess = getActiveSession();
+      if(sess){
+        state.uiTheme = sess.theme || state.uiTheme;
+      }
+
+      saveState();
+      toast("Sesi aktif diubah.");
+    }
+
+    // ---------- People Save ----------
+    function savePeople(){
+      const countRaw = parseInt($("inpCount").value, 10);
+      const count = Number.isFinite(countRaw) ? clamp(countRaw, 1, 30) : 0;
+
+      if(!count){
+        toast("Isi jumlah peserta (1–30).");
+        return;
+      }
+
+      const names = safeLines($("taNames").value);
+      // Use provided names up to count
+      const finalNames = Array.from({length: count}, (_,i)=> names[i] || `Peserta ${i+1}`);
+
+      state.people.count = count;
+      state.people.names = finalNames;
+      state.people.turnIndex = clamp(state.people.turnIndex || 0, 0, count-1);
+      state.people.updatedAt = now();
+
+      // apply selected global theme (until active session set)
+      const theme = $("selTheme").value;
+      state.uiTheme = theme;
+
+      saveState();
+      toast("Peserta disimpan.");
+    }
+
+    // ---------- Reset All ----------
+    function resetAll(){
+      if(!confirm("Reset semua data (peserta & sesi)?")) return;
+      stopTimer();
+      state = defaultState();
+      localStorage.removeItem(KEY);
+      render();
+      toast("Semua data direset.");
+    }
+
+    // ---------- Render ----------
+    function render(){
+      // theme
+      document.body.setAttribute("data-theme", state.uiTheme || "deep");
+      $("pillTheme").textContent =
+        (state.uiTheme === "fun") ? "Fun" :
+        (state.uiTheme === "warm") ? "Warm" :
+        (state.uiTheme === "closing") ? "Closing" : "Deep";
+
+      // people
+      $("inpCount").value = state.people.count || "";
+      $("taNames").value = (state.people.names || []).join("\n");
+
+      // sessions dropdown
+      const sel = $("selSessions");
+      sel.innerHTML = "";
+      if(state.sessions.length === 0){
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "— belum ada sesi —";
+        sel.appendChild(opt);
+        sel.disabled = true;
+        $("btnSetActive").disabled = true;
+        $("btnUpdateSession").disabled = true;
+        $("btnDeleteSession").disabled = true;
+      }else{
+        sel.disabled = false;
+        for(const s of state.sessions){
+          const opt = document.createElement("option");
+          opt.value = s.id;
+          const activeMark = (s.id === state.activeSessionId) ? " (aktif)" : "";
+          opt.textContent = `${s.name}${activeMark}`;
+          sel.appendChild(opt);
+        }
+        sel.value = state.activeSessionId || state.sessions[0].id;
+        $("btnSetActive").disabled = false;
+
+        // enable update/delete only if a real selection
+        $("btnUpdateSession").disabled = !sel.value;
+        $("btnDeleteSession").disabled = !sel.value;
+      }
+
+      // active session tag + stage
+      const active = getActiveSession();
+      $("activeSessionTag").textContent = active ? `${active.name}` : "Belum ada sesi";
+
+      // if active session exists, adopt its theme as UI theme (optional, but requested: "css aesthetic sesuai sesi")
+      if(active && (state.uiTheme !== active.theme)){
+        state.uiTheme = active.theme || state.uiTheme;
+        document.body.setAttribute("data-theme", state.uiTheme);
+        $("pillTheme").textContent =
+          (state.uiTheme === "fun") ? "Fun" :
+          (state.uiTheme === "warm") ? "Warm" :
+          (state.uiTheme === "closing") ? "Closing" : "Deep";
+      }
+
+      // turn
+      $("turnName").textContent = currentTurnName();
+      $("turnHint").textContent = (state.people.count > 0) ? `(${(state.people.turnIndex||0)+1}/${state.people.count})` : "";
+
+      // stage question text
+      if(active){
+        const lastIdx = (typeof active.lastQuestionIdx === "number") ? active.lastQuestionIdx : null;
+        if(lastIdx !== null && active.questions[lastIdx]){
+          $("questionText").textContent = active.questions[lastIdx];
+        }else{
+          $("questionText").textContent = "Tekan “Spin Pertanyaan” untuk memilih pertanyaan acak.";
+        }
+      }else{
+        $("questionText").textContent = "Buat sesi dulu di panel kanan, lalu pilih sesi aktif.";
+      }
+
+      // progress
+      const prog = computeProgress(active);
+      $("usedCount").textContent = prog.used;
+      $("totalCount").textContent = prog.total;
+      $("barFill").style.width = `${prog.pct}%`;
+
+      // used list
+      const ul = $("usedList");
+      ul.innerHTML = "";
+      if(active && active.usedIdx?.length){
+        const idxs = [...active.usedIdx].slice().sort((a,b)=>a-b);
+        for(const i of idxs){
+          const li = document.createElement("li");
+          li.textContent = active.questions[i] || "(pertanyaan tidak ditemukan)";
+          ul.appendChild(li);
+        }
+      }else{
+        const li = document.createElement("li");
+        li.textContent = "Belum ada pertanyaan yang keluar.";
+        ul.appendChild(li);
+      }
+
+      // enable buttons
+      const canSpin = ensurePeopleSilent() && !!active && (active.questions.length > 0) && ((active.usedIdx?.length || 0) < active.questions.length);
+      $("btnSpin").disabled = !canSpin;
+      $("btnNextTurn").disabled = !ensurePeopleSilent();
+      $("btnResetSession").disabled = !active;
+
+      const timerButtonsOk = ensurePeopleSilent() && !!active;
+      $("btnStart1m").disabled = !timerButtonsOk;
+      $("btnStart45s").disabled = !timerButtonsOk;
+
+      // session editor fields reflect selected session
+      syncEditorWithSelected();
+    }
+
+    function ensurePeopleSilent(){
+      return (state.people.count || 0) > 0;
+    }
+
+    function syncEditorWithSelected(){
+      const id = getSelectedSessionId();
+      const sess = state.sessions.find(s => s.id === id);
+      if(!sess){
+        // don't wipe typed content if user is creating new and no selection
+        $("btnUpdateSession").disabled = true;
+        $("btnDeleteSession").disabled = true;
+        return;
+      }
+      // Only auto-fill if user isn't currently editing a different draft:
+      // We'll fill whenever selection changes (handled by event) and also on render.
+      $("btnUpdateSession").disabled = false;
+      $("btnDeleteSession").disabled = false;
+    }
+
+    function fillEditorFromSession(id){
+      const sess = state.sessions.find(s => s.id === id);
+      if(!sess) return;
+      $("inpSessionName").value = sess.name || "";
+      $("selSessionTheme").value = sess.theme || "deep";
+      $("taQuestions").value = (sess.questions || []).join("\n");
+    }
+
+    // ---------- Events ----------
+    $("btnSavePeople").addEventListener("click", savePeople);
+    $("btnClearAll").addEventListener("click", resetAll);
+
+    $("btnAddSession").addEventListener("click", addSession);
+    $("btnUpdateSession").addEventListener("click", updateSelectedSession);
+    $("btnDeleteSession").addEventListener("click", deleteSelectedSession);
+    $("btnSetActive").addEventListener("click", setActiveSession);
+
+    $("btnSpin").addEventListener("click", spinQuestion);
+    $("btnNextTurn").addEventListener("click", nextTurn);
+    $("btnResetSession").addEventListener("click", resetSessionUsed);
+
+    $("btnStart1m").addEventListener("click", ()=> startTimer(60));
+    $("btnStart45s").addEventListener("click", ()=> startTimer(45));
+
+    $("selTheme").addEventListener("change", ()=>{
+      state.uiTheme = $("selTheme").value;
+      saveState();
+    });
+
+    $("selSessions").addEventListener("change", ()=>{
+      const id = getSelectedSessionId();
+      if(id) fillEditorFromSession(id);
+      $("btnSetActive").disabled = !id;
+      $("btnUpdateSession").disabled = !id;
+      $("btnDeleteSession").disabled = !id;
+    });
+
+    // Space to spin
+    window.addEventListener("keydown", (e)=>{
+      if(e.code === "Space"){
+        // don't trigger if focused inside input/textarea
+        const tag = (document.activeElement?.tagName || "").toLowerCase();
+        if(tag === "input" || tag === "textarea" || tag === "select") return;
+        e.preventDefault();
+        if(!$("btnSpin").disabled) spinQuestion();
+      }
+    });
+
+    // On first load, if sessions exist, load editor selection
+    function init(){
+      // set dropdown selection and fill editor
+      if(state.sessions.length){
+        const sel = $("selSessions");
+        sel.value = state.activeSessionId || state.sessions[0].id;
+        fillEditorFromSession(sel.value);
+        $("btnSetActive").disabled = false;
+      }else{
+        $("btnSetActive").disabled = true;
+      }
+      // theme selectors reflect
+      $("selTheme").value = state.uiTheme || "deep";
+      render();
+    }
+
+    init();
+  </script>
+</body>
+</html>
