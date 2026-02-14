@@ -1,0 +1,282 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Deep Reflection Box Game</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body data-theme="deep">
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Deep Reflection Box Game</h1>
+        <p class="subtitle">
+          Buat peserta → buat sesi + pertanyaan → pilih sesi aktif → <b>Spin</b>.
+          Pertanyaan tidak akan tampil lagi <span class="kbd">per sesi</span>.
+          Mode <b>Special</b> punya subtema + spin nama + kuota pertanyaan per peserta.
+        </p>
+      </div>
+      <div class="pillrow">
+        <div class="pill"><span class="dot"></span> Mode: <b id="pillTheme" class="pillText">Deep</b></div>
+        <div class="pill">Shortcut: <span class="kbd">Space</span> spin</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Game Stage -->
+      <section class="card">
+        <h2>🎡 Panggung Game <span class="tag" id="activeSessionTag">Belum ada sesi</span></h2>
+
+        <div class="stage" aria-live="polite">
+          <div class="who">
+            <span>Giliran:</span>
+            <strong id="turnName">—</strong>
+            <span id="turnHint"></span>
+          </div>
+
+          <div>
+            <div class="q" id="questionText">Buat sesi dulu di panel kanan, lalu jadikan sesi aktif.</div>
+          </div>
+
+          <div class="meta">
+            <div class="progress">
+              <span>Progress sesi:</span>
+              <div class="bar" role="progressbar" aria-label="Progress sesi">
+                <i id="barFill"></i>
+              </div>
+              <span><b id="usedCount">0</b>/<span id="totalCount">0</span> terpakai</span>
+            </div>
+            <div>
+              <span>Timer:</span>
+              <b id="timerLabel">00:00</b>
+            </div>
+          </div>
+        </div>
+
+        <!-- Normal buttons -->
+        <div class="btnrow" id="normalControls">
+          <button class="primary" id="btnSpin" disabled>Spin Pertanyaan</button>
+          <button class="good" id="btnNextTurn" disabled>Next Peserta</button>
+          <button id="btnStart1m" disabled>Timer 1 Menit</button>
+          <button id="btnStart45s" disabled>Timer 45 Detik</button>
+          <button class="danger" id="btnResetSession" disabled>Reset Pertanyaan Sesi</button>
+        </div>
+
+        <!-- Special controls -->
+        <div class="specialPanel" id="specialControls" hidden>
+          <div class="specialTop">
+            <div class="specialTitle">
+              <h3>✨ Special Session</h3>
+              <p class="subtitle mini">
+                Alur: <b>Spin Nama</b> → peserta pilih <b>Subtema</b> → spin pertanyaan sampai kuota tercapai → peserta selesai → ulangi sampai semua selesai.
+              </p>
+            </div>
+            <div class="specialStats">
+              <div class="pill">
+                Remaining: <b id="spRemainingCount" class="pillText">0</b>
+              </div>
+              <div class="pill">
+                Kuota/peserta: <b id="spQuota" class="pillText">0</b>
+              </div>
+              <div class="pill">
+                Progress peserta: <b id="spPersonProg" class="pillText">0/0</b>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="row">
+            <label>
+              Pilih Subtema (oleh peserta)
+              <select id="spSubthemeSelect" disabled></select>
+            </label>
+
+            <label>
+              (Info) Pertanyaan tersisa di subtema
+              <input id="spSubthemeRemaining" disabled value="—" />
+            </label>
+          </div>
+
+          <div class="btnrow">
+            <button class="primary" id="spSpinName" disabled>Spin Nama (Masuk Special)</button>
+            <button class="good" id="spConfirmSubtheme" disabled>Kunci Subtema</button>
+            <button class="primary" id="spSpinQuestion" disabled>Spin Pertanyaan (Special)</button>
+            <button class="danger" id="spResetSpecialRuntime" disabled>Reset Runtime Special</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <h2>📌 Log Special (nama + subtema + pertanyaan)</h2>
+          <ol class="list" id="spLog"></ol>
+
+          <div class="divider"></div>
+
+          <h2>👥 Remaining (yang belum special)</h2>
+          <ul class="list" id="spRemainingList"></ul>
+        </div>
+
+        <div class="divider"></div>
+
+        <h2>📌 Pertanyaan yang sudah keluar <span class="tag">per sesi</span></h2>
+        <ol class="list" id="usedList"></ol>
+      </section>
+
+      <!-- RIGHT: Setup Panels -->
+      <aside class="card">
+        <h2>⚙️ Setup Peserta</h2>
+
+        <div class="row">
+          <label>
+            Jumlah peserta
+            <input type="number" id="inpCount" min="1" max="30" placeholder="mis. 6" />
+          </label>
+          <label>
+            Tema tampilan (global mengikuti sesi aktif)
+            <select id="selTheme">
+              <option value="fun">Fun (Lucu)</option>
+              <option value="warm">Warm (Hangat)</option>
+              <option value="deep" selected>Deep (Dalam)</option>
+              <option value="special">Special (Khusus)</option>
+              <option value="closing">Closing (Penutup)</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="mt8">
+          Nama peserta (1 baris = 1 nama) — opsional (kalau kosong: Peserta 1..n)
+          <textarea id="taNames" placeholder="Contoh:
+Rizky
+Adit
+Salsa
+..."></textarea>
+        </label>
+
+        <div class="btnrow">
+          <button class="good" id="btnSavePeople">Simpan Peserta</button>
+          <button class="danger" id="btnClearAll">Reset Semua Data</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <h2>🧩 Buat Sesi & Pertanyaan</h2>
+
+        <div class="row">
+          <label>
+            Nama sesi
+            <input id="inpSessionName" placeholder="mis. Box 0: Lucu / Keluarga / Special / Closing" />
+          </label>
+          <label>
+            Tema sesi
+            <select id="selSessionTheme">
+              <option value="fun">Fun (Lucu)</option>
+              <option value="warm">Warm (Hangat)</option>
+              <option value="deep" selected>Deep (Dalam)</option>
+              <option value="special">Special (Khusus)</option>
+              <option value="closing">Closing (Penutup)</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- NORMAL session questions -->
+        <div id="normalSessionEditor">
+          <label class="mt8">
+            Daftar pertanyaan (1 baris = 1 pertanyaan)
+            <textarea id="taQuestions" placeholder="Contoh:
+Kalau hidupmu sekarang judul sinetron, judulnya apa?
+Apa arti rumah bagimu?
+..."></textarea>
+          </label>
+        </div>
+
+        <!-- SPECIAL session editor -->
+        <div id="specialSessionEditor" hidden>
+          <div class="row mt8">
+            <label>
+              Kuota pertanyaan per peserta (Special)
+              <input type="number" id="spQuotaInput" min="1" max="10" placeholder="mis. 2" />
+            </label>
+            <label>
+              Catatan
+              <input disabled value="Kuota berlaku per peserta (spin sampai kuota habis)" />
+            </label>
+          </div>
+
+          <div class="divider"></div>
+
+          <h2>🧷 Subtema Special</h2>
+
+          <div class="row">
+            <label>
+              Nama Subtema
+              <input id="spSubthemeName" placeholder="mis. Keluarga / Kerja / Cita-cita / Asmara / Bebas" />
+            </label>
+          </div>
+
+          <label class="mt8">
+            Pertanyaan Subtema (1 baris = 1 pertanyaan)
+            <textarea id="spSubthemeQuestions" placeholder="Contoh:
+Hal apa tentang keluargamu yang paling membentuk dirimu?
+Apa tekanan terbesar dalam pekerjaanmu?
+..."></textarea>
+          </label>
+
+          <div class="btnrow">
+            <button class="primary" id="spAddSubtheme">Tambah Subtema</button>
+            <button id="spUpdateSubtheme" disabled>Update Subtema</button>
+            <button class="danger" id="spDeleteSubtheme" disabled>Hapus Subtema</button>
+          </div>
+
+          <div class="row mt8">
+            <label>
+              Daftar Subtema (klik untuk edit)
+              <select id="spSubthemeList"></select>
+            </label>
+            <label>
+              Info
+              <input id="spSubthemeInfo" disabled value="—" />
+            </label>
+          </div>
+
+          <p class="subtitle mini mt8">
+            Pertanyaan yang sudah keluar akan ditandai sebagai “used” <b>per subtema</b> dan dipakai bersama semua peserta.
+          </p>
+        </div>
+
+        <div class="btnrow mt8">
+          <button class="primary" id="btnAddSession">Tambah Sesi</button>
+          <button id="btnUpdateSession" disabled>Update Sesi Terpilih</button>
+          <button class="danger" id="btnDeleteSession" disabled>Hapus Sesi Terpilih</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <h2>📚 Daftar Sesi</h2>
+        <div class="row">
+          <label>
+            Pilih sesi aktif
+            <select id="selSessions"></select>
+          </label>
+        </div>
+
+        <div class="btnrow">
+          <button class="good" id="btnSetActive" disabled>Jadikan Aktif</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <p class="subtitle mini">
+          Data tersimpan di perangkat ini (localStorage). Jika pindah perangkat, perlu input ulang.
+        </p>
+      </aside>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
