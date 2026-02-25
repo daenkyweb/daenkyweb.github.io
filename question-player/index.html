@@ -3,32 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Spinner Pertanyaan</title>
+  <title>Spinner Pertanyaan (WCAG + NVDA) — Style Wheel (Merah/Biru/Hijau/Kuning)</title>
 
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
     :root{
-      --wheel-size: clamp(240px, 70vw, 380px);
-      --wheel-border: 10px;
-      --pointer-color: #dc3545; /* bootstrap danger */
+      --wheel-size: clamp(260px, 82vw, 520px);
       --focus-ring: 0 0 0 .25rem rgba(13,110,253,.25);
     }
-
     body { background: #0b1320; color: #e9eef7; }
-    .app-wrap { max-width: 1100px; }
+    .app-wrap { max-width: 1200px; }
     .card { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); }
     .muted { color: rgba(233,238,247,.82); }
 
-    /* Accessible skip */
     .skip-link{
       position:absolute; left:-999px; top:0; background:#fff; color:#000;
       padding:8px 10px; z-index:9999; border-radius:10px;
     }
     .skip-link:focus{ left:12px; top:12px; box-shadow: var(--focus-ring); }
 
-    /* Nav buttons as "tabs" (simple, SR-friendly) */
     .navbtn[aria-current="page"]{
       background: #0d6efd !important;
       border-color: #0d6efd !important;
@@ -36,95 +31,91 @@
       box-shadow: 0 10px 30px rgba(13,110,253,.25);
     }
 
-    /* Wheel */
-    .wheel-wrap{
-      width: var(--wheel-size);
-      height: var(--wheel-size);
-      position: relative;
-      margin-inline: auto;
-      touch-action: manipulation;
+    :focus-visible{ outline: none; box-shadow: var(--focus-ring); border-radius: 12px; }
+
+    /* Stage background like your screenshot (soft dark gradient) */
+    .stageBg{
+      background:
+        radial-gradient(900px 520px at 8% 10%, rgba(41, 72, 150,.45), rgba(0,0,0,0) 55%),
+        radial-gradient(900px 520px at 92% 8%, rgba(150, 41, 72,.40), rgba(0,0,0,0) 55%),
+        radial-gradient(900px 520px at 55% 85%, rgba(0, 0, 0,.55), rgba(0,0,0,0) 60%),
+        #0b1320;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
     }
 
-    .wheel{
+    /* Wheel container (drop-shadow like the image) */
+    .wheelStage{
+      width: var(--wheel-size);
+      aspect-ratio: 1 / 1;
+      margin-inline: auto;
+      position: relative;
+      filter: drop-shadow(0 0 10px rgba(0,0,0,.55));
+      touch-action: manipulation;
+      user-select:none;
+    }
+
+    canvas#wheelCanvas{
       width: 100%;
       height: 100%;
-      border-radius: 50%;
-      border: var(--wheel-border) solid rgba(255,255,255,.88);
-      background: #2b3341;
-      position: relative;
-      overflow: hidden;
-      transform: rotate(0deg);
-      transition: transform 2200ms cubic-bezier(.17,.67,.27,1.33);
-      box-shadow: 0 18px 60px rgba(0,0,0,.45);
-      will-change: transform;
+      border-radius: 9999px;
+      display:block;
     }
 
-    /* Winner glow overlay */
-    .wheelGlow{
-      position:absolute;
-      inset: calc(var(--wheel-border) * -1);
-      border-radius: 50%;
+    /* Outer rim like image: thick with subtle highlight */
+    .wheelRim{
+      position:absolute; inset: 0;
+      border-radius: 9999px;
+      border: 10px solid rgba(255,255,255,.75);
+      box-shadow:
+        inset 0 0 0 2px rgba(0,0,0,.35),
+        0 0 0 1px rgba(255,255,255,.08);
       pointer-events:none;
-      opacity: 0;
-      filter: blur(0px);
-      transition: opacity 250ms ease;
-      mix-blend-mode: screen;
-      z-index: 2;
-    }
-    .wheelGlow.is-on{
-      opacity: 1;
-      animation: glowPulse 900ms ease-in-out 0s 2;
-    }
-    @keyframes glowPulse{
-      0% { filter: blur(0px); transform: scale(1); }
-      50% { filter: blur(1.7px); transform: scale(1.012); }
-      100% { filter: blur(0px); transform: scale(1); }
     }
 
-    .wheelCenter{
-      width: clamp(84px, 24vw, 120px);
-      height: clamp(84px, 24vw, 120px);
-      background: rgba(0,0,0,.75);
-      border: 1px solid rgba(255,255,255,.18);
-      border-radius: 50%;
-      position: absolute;
+    /* White center circle like image */
+    .wheelHub{
+      position:absolute;
       inset: 50% auto auto 50%;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%,-50%);
+      width: clamp(78px, 20vw, 112px);
+      height: clamp(78px, 20vw, 112px);
+      border-radius: 9999px;
+      background: #fff;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      z-index: 6;
+      pointer-events:none;
+    }
+
+    /* Pointer on RIGHT like your screenshot */
+    .pointerLeft{
+      position:absolute;
+      top: 50%;
+      right: -4px;
+      transform: translate(0, -50%);
+      width: 0; height: 0;
+      border-top: 16px solid transparent;
+      border-bottom: 16px solid transparent;
+      border-right: 32px solid #ffffff;/* white pointer */
+      z-index: 7;
+      filter: drop-shadow(0 10px 12px rgba(0,0,0,.35));
+      pointer-events:none;
+    }
+
+    /* Center overlay button for accessibility */
+    .centerOverlay{
+      position:absolute;
+      inset: 50% auto auto 50%;
+      transform: translate(-50%,-50%);
+      width: clamp(160px, 42vw, 240px);
+      height: clamp(160px, 42vw, 240px);
+      border-radius: 9999px;
+      background: transparent;
+      border: 0;
+      z-index: 8;
       display:grid;
       place-items:center;
-      z-index: 4;
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,.06);
-    }
-    #ringValue{
-      font-weight: 900;
-      font-size: clamp(1.5rem, 6vw, 2.35rem);
-      letter-spacing: 1px;
-    }
-
-    .pointer{
-      position:absolute;
-      top: calc(var(--wheel-border) * -0.35);
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0; height: 0;
-      border-left: 16px solid transparent;
-      border-right: 16px solid transparent;
-      border-bottom: 28px solid var(--pointer-color);
-      z-index: 6;
-      filter: drop-shadow(0 10px 12px rgba(0,0,0,.35));
-    }
-
-    /* Reduced motion */
-    @media (prefers-reduced-motion: reduce){
-      .wheel { transition: none !important; }
-      .wheelGlow.is-on{ animation: none !important; }
-    }
-
-    /* Focus visibility */
-    :focus-visible{
-      outline: none;
-      box-shadow: var(--focus-ring);
-      border-radius: 10px;
+      color: transparent;
     }
 
     /* Dialog */
@@ -138,21 +129,6 @@
     }
     dialog::backdrop{ background: rgba(0,0,0,.55); }
 
-    /* Color chips in list */
-    .code-chip{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-width: 46px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-weight: 800;
-      color: #09111d;
-      border: 1px solid rgba(255,255,255,.28);
-      text-shadow: none;
-      user-select:none;
-    }
-
     .qrow{
       border: 1px solid rgba(255,255,255,.14);
       border-radius: 14px;
@@ -160,6 +136,19 @@
       background: rgba(255,255,255,.04);
     }
     .qrow:hover{ background: rgba(255,255,255,.06); }
+
+    .code-chip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width: 46px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 900;
+      color: rgba(0,0,0,.85);
+      border: 1px solid rgba(255,255,255,.25);
+      user-select:none;
+    }
 
     .sr-only{
       position:absolute !important; width:1px; height:1px;
@@ -175,8 +164,8 @@
 <div class="container py-4 app-wrap">
   <header class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
     <div>
-      <h1 class="h4 mb-1 text-white">Spinner Pertanyaan</h1>
-      <div class="muted small">Ctrl+Enter untuk spin • Data tersimpan di localStorage</div>
+      <h1 class="h4 mb-1 text-white">Spinner Pertanyaan (WCAG + NVDA)</h1>
+      <div class="muted small">Wheel style seperti contoh (merah/biru/hijau/kuning) • Ctrl+Enter • localStorage</div>
     </div>
     <div class="d-flex gap-2">
       <button class="btn btn-outline-light btn-sm" id="btnExport" type="button">Export JSON</button>
@@ -185,7 +174,6 @@
     </div>
   </header>
 
-  <!-- Live region for NVDA -->
   <div class="sr-only" aria-live="polite" aria-atomic="true" id="live"></div>
 
   <nav class="d-flex flex-wrap gap-2 mb-3" aria-label="Menu">
@@ -196,34 +184,30 @@
   </nav>
 
   <main id="main">
-    <!-- SPINNER VIEW -->
     <section data-view-section="spin">
       <div class="row g-3 align-items-stretch">
         <div class="col-12 col-lg-7">
-          <div class="card p-3 h-100">
+          <div class="card p-3 h-100 stageBg">
             <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
               <h2 class="h5 mb-1 text-white">Spinner</h2>
               <div class="small muted" id="spinHelp">
-                Shortcut: <b>Ctrl+Enter</b> • Tombol Spin bisa Enter/Space
+                Klik wheel / tombol Spin • Shortcut: <b>Ctrl+Enter</b>
               </div>
             </div>
 
             <div class="mt-3 text-center" aria-describedby="spinHelp">
-              <div class="wheel-wrap">
-                <div class="pointer" aria-hidden="true"></div>
+              <div class="wheelStage">
+                <div class="pointerLeft" aria-hidden="true"></div>
 
-                <div id="wheel" class="wheel" role="img" aria-label="Wheel spinner berwarna. Kode terpilih akan ditampilkan di tengah.">
-                  <div id="wheelGlow" class="wheelGlow" aria-hidden="true"></div>
-                  <div class="wheelCenter" aria-hidden="true">
-                    <span id="ringValue" class="text-white">—</span>
-                  </div>
-                </div>
+                <canvas id="wheelCanvas" width="700" height="700" aria-label="Wheel spinner. Klik untuk spin, atau tekan Ctrl+Enter."></canvas>
+                <div class="wheelRim" aria-hidden="true"></div>
+                <div class="wheelHub" aria-hidden="true"></div>
+
+                <button id="centerSpin" class="centerOverlay" type="button" aria-label="Spin (Ctrl+Enter)"></button>
               </div>
 
               <div class="mt-3 d-flex flex-column flex-sm-row justify-content-center gap-2">
-                <button class="btn btn-primary btn-lg" id="btnSpin" type="button">
-                  🎯 Spin <span class="d-none d-sm-inline">(Ctrl+Enter)</span>
-                </button>
+                <button class="btn btn-primary btn-lg" id="btnSpin" type="button">🎯 Spin (Ctrl+Enter)</button>
                 <button class="btn btn-outline-light btn-lg" id="btnResetDemo" type="button">Isi contoh</button>
                 <button class="btn btn-outline-danger btn-lg" id="btnClearAll" type="button">Hapus semua</button>
               </div>
@@ -231,6 +215,7 @@
               <div class="mt-3 small">
                 <span class="badge text-bg-success me-2">Tersedia: <span id="countAvailable">0</span></span>
                 <span class="badge text-bg-info">Terpilih: <span id="countPicked">0</span></span>
+                <span class="badge text-bg-warning text-dark ms-2">Hasil: <span id="ringValue">—</span></span>
               </div>
 
               <div class="mt-2 muted" id="spinStatus">Siap untuk spin.</div>
@@ -248,7 +233,7 @@
               <input id="kode" class="form-control" type="text" maxlength="8" autocomplete="off"
                      aria-describedby="kodeHint" />
               <div class="form-text text-light-emphasis" id="kodeHint">
-                Contoh: 1, 2, A, B, 01 (yang tampil di wheel hanya kode).
+                Contoh: 1, 2, A, B, 01. (Yang tampil di wheel: hanya KODE.)
               </div>
             </div>
 
@@ -265,19 +250,18 @@
 
             <hr class="border-light border-opacity-25 my-3">
             <div class="small muted">
-              Saat spin: slice menang glow + popup pertanyaan. NVDA akan membacakan hasil via aria-live.
+              Saat menang: highlight slice glow (canvas) + popup pertanyaan. NVDA membaca via aria-live.
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- BANK VIEW -->
     <section data-view-section="bank" hidden>
       <div class="card p-3">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
           <h2 class="h5 mb-0 text-white">Daftar Pertanyaan</h2>
-          <div class="small muted">Disembunyikan saat spin jika pengaturan aktif.</div>
+          <div class="small muted">Bisa disembunyikan saat spin (pengaturan).</div>
         </div>
 
         <div class="mt-3 muted" id="bankEmpty">Belum ada pertanyaan.</div>
@@ -285,7 +269,6 @@
       </div>
     </section>
 
-    <!-- HASIL VIEW -->
     <section data-view-section="hasil" hidden>
       <div class="card p-3">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
@@ -298,7 +281,6 @@
       </div>
     </section>
 
-    <!-- SETTINGS VIEW -->
     <section data-view-section="set" hidden>
       <div class="card p-3">
         <h2 class="h5 text-white">Pengaturan</h2>
@@ -309,7 +291,7 @@
             Pertanyaan yang terpilih hilang otomatis (default ON)
           </label>
         </div>
-        <div class="muted small">Jika OFF, setelah popup muncul akan ada tombol “Remove dari daftar”.</div>
+        <div class="muted small">Jika OFF, popup punya tombol “Remove dari daftar”.</div>
 
         <div class="form-check form-switch mt-3">
           <input class="form-check-input" type="checkbox" id="hideBankOnSpin" checked>
@@ -328,23 +310,15 @@
         <div class="form-check form-switch mt-3">
           <input class="form-check-input" type="checkbox" id="soundOn">
           <label class="form-check-label" for="soundOn">
-            Efek suara spin (aksesibilitas: bisa dimatikan)
+            Efek suara spin (toggle aksesibilitas)
           </label>
         </div>
-        <div class="muted small">
-          Suara dibuat dengan Web Audio (tanpa file eksternal). Aktifkan lalu coba spin.
-        </div>
-
-        <hr class="border-light border-opacity-25 my-3">
-        <div class="small muted">
-          Tips NVDA: gunakan menu di atas untuk pindah tab, dan Ctrl+Enter untuk spin.
-        </div>
+        <div class="muted small">Suara dibuat dengan Web Audio (tanpa file eksternal).</div>
       </div>
     </section>
   </main>
 </div>
 
-<!-- Dialog: Question -->
 <dialog id="dlgQuestion" aria-labelledby="dlgTitle">
   <h2 id="dlgTitle" class="h5 mb-2">Pertanyaan terpilih</h2>
   <p class="mb-2"><b>Kode:</b> <span id="dlgCode">—</span></p>
@@ -357,7 +331,6 @@
   </div>
 </dialog>
 
-<!-- Dialog: Confirm -->
 <dialog id="dlgConfirm" aria-labelledby="dlgConfirmTitle">
   <h2 id="dlgConfirmTitle" class="h5 mb-2">Konfirmasi</h2>
   <p id="dlgConfirmText" class="mb-3">—</p>
@@ -369,17 +342,17 @@
 
 <script>
 (() => {
-  const LS_KEY = "spinner_qa_bootstrap_wheel_v2";
-
+  const LS_KEY = "spinner_qa_style_like_image_v1";
   const $ = (id) => document.getElementById(id);
-  const live = $("live");
 
-  // Elements
-  const wheel = $("wheel");
-  const wheelGlow = $("wheelGlow");
+  const live = $("live");
+  const canvas = $("wheelCanvas");
+  const ctx = canvas.getContext("2d");
+
   const ringValue = $("ringValue");
   const spinStatus = $("spinStatus");
   const btnSpin = $("btnSpin");
+  const centerSpin = $("centerSpin");
   const btnAdd = $("btnAdd");
   const btnGoBank = $("btnGoBank");
   const btnGoHasil = $("btnGoHasil");
@@ -394,7 +367,6 @@
 
   const bankList = $("bankList");
   const bankEmpty = $("bankEmpty");
-
   const hasilList = $("hasilList");
   const hasilEmpty = $("hasilEmpty");
 
@@ -418,10 +390,9 @@
   const btnImport = $("btnImport");
   const fileImport = $("fileImport");
 
-  // State
   let state = {
-    items: [],      // { id, code, text, removed }
-    picked: [],     // { id, code, text, atISO }
+    items: [],
+    picked: [],
     settings: {
       autoRemove: true,
       hideBankOnSpin: true,
@@ -430,10 +401,25 @@
     }
   };
 
-  let spinning = false;
-  let lastFocusEl = null;
+  const SLICE_COLORS = ["#d7192a", "#2b66d9", "#18a84a", "#f3c11b"]; // red, blue, green, yellow
+  function colorForIndex(i){ return SLICE_COLORS[i % SLICE_COLORS.length]; }
+  function textColorForFill(hex){
+    if (hex === "#f3c11b" || hex === "#18a84a") return "rgba(0,0,0,.80)";
+    return "rgba(255,255,255,.92)";
+  }
 
-  // Audio (no external files)
+  function cryptoInt(n){
+    if (n <= 1) return 0;
+    const buf = new Uint32Array(1);
+    const max = 0xFFFFFFFF;
+    const limit = max - (max % n);
+    while (true){
+      crypto.getRandomValues(buf);
+      const x = buf[0];
+      if (x < limit) return x % n;
+    }
+  }
+
   let audioCtx = null;
   function ensureAudio(){
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -456,9 +442,9 @@
   }
   function spinSound(){
     if (!state.settings.soundOn) return;
-    const steps = 11;
+    const steps = 12;
     for (let i=0;i<steps;i++){
-      setTimeout(() => beep(240 + i*55, 0.045, 0.03, "triangle"), i*55);
+      setTimeout(() => beep(220 + i*55, 0.045, 0.03, "triangle"), i*55);
     }
   }
   function winSound(){
@@ -471,10 +457,7 @@
     setTimeout(() => { live.textContent = msg; }, 10);
   }
 
-  function save(){
-    localStorage.setItem(LS_KEY, JSON.stringify(state));
-  }
-
+  function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
   function load(){
     try{
       const raw = localStorage.getItem(LS_KEY);
@@ -483,60 +466,122 @@
       if (parsed && typeof parsed === "object") state = parsed;
     }catch{}
   }
+  function availableItems(){ return state.items.filter(it => !it.removed); }
 
-  function availableItems(){
-    return state.items.filter(it => !it.removed);
+  function applySettingsUI(){
+    state.settings = Object.assign({autoRemove:true, hideBankOnSpin:true, reduceAnim:false, soundOn:false}, state.settings||{});
+    autoRemove.checked = !!state.settings.autoRemove;
+    hideBankOnSpin.checked = !!state.settings.hideBankOnSpin;
+    reduceAnim.checked = !!state.settings.reduceAnim;
+    soundOn.checked = !!state.settings.soundOn;
   }
 
-  function stableColor(i, total){
-    const hue = (i * 360) / Math.max(1,total);
-    return `hsl(${hue}, 78%, 55%)`;
+  function goView(name){
+    document.querySelectorAll(".navbtn").forEach(btn => {
+      btn.setAttribute("aria-current", btn.dataset.view === name ? "page" : "false");
+    });
+    document.querySelectorAll("[data-view-section]").forEach(sec => {
+      sec.hidden = sec.dataset.viewSection !== name;
+    });
   }
+  document.querySelectorAll(".navbtn").forEach(btn => btn.addEventListener("click", () => goView(btn.dataset.view)));
+  btnGoBank.addEventListener("click", () => goView("bank"));
+  btnGoHasil.addEventListener("click", () => goView("hasil"));
 
-  function buildWheelGradient(items){
-    if (!items.length) return { css: "#2b3341", colors: [] };
-    const total = items.length;
-    const angle = 360 / total;
-    let parts = [];
-    let colors = [];
-    for (let i=0;i<total;i++){
-      const start = i * angle;
-      const end = start + angle;
-      const c = stableColor(i,total);
-      colors.push(c);
-      parts.push(`${c} ${start}deg ${end}deg`);
+  autoRemove.addEventListener("change", () => { state.settings.autoRemove = autoRemove.checked; save(); announce(`Auto remove ${autoRemove.checked ? "aktif" : "nonaktif"}.`); });
+  hideBankOnSpin.addEventListener("change", () => { state.settings.hideBankOnSpin = hideBankOnSpin.checked; save(); announce(`Sembunyikan daftar saat spin ${hideBankOnSpin.checked ? "aktif" : "nonaktif"}.`); });
+  reduceAnim.addEventListener("change", () => { state.settings.reduceAnim = reduceAnim.checked; save(); announce(`Kurangi animasi ${reduceAnim.checked ? "aktif" : "nonaktif"}.`); });
+  soundOn.addEventListener("change", () => {
+    state.settings.soundOn = soundOn.checked;
+    save();
+    if (state.settings.soundOn) beep(520, 0.06, 0.04, "sine");
+    announce(`Suara ${soundOn.checked ? "aktif" : "nonaktif"}.`);
+  });
+
+  btnAdd.addEventListener("click", () => {
+    const code = inpCode.value.trim();
+    const text = inpText.value.trim();
+    if (!code){ announce("Kode wajib diisi."); inpCode.focus(); return; }
+    if (!text){ announce("Pertanyaan wajib diisi."); inpText.focus(); return; }
+
+    const existing = state.items.find(it => !it.removed && it.code.toLowerCase() === code.toLowerCase());
+    if (existing){
+      existing.code = code; existing.text = text;
+      announce(`Pertanyaan kode ${code} diperbarui.`);
+    } else {
+      state.items.push({ id: crypto.randomUUID(), code, text, removed:false });
+      announce(`Pertanyaan kode ${code} ditambahkan.`);
     }
-    const css = `conic-gradient(${parts.join(", ")})`;
-    return { css, colors };
+    inpCode.value = ""; inpText.value = "";
+    save(); renderAll(); inpCode.focus();
+  });
+
+  btnResetDemo.addEventListener("click", () => {
+    if (state.items.length){
+      confirmDialog("Tambah data contoh tanpa menghapus data yang ada?", () => addDemo(false));
+      return;
+    }
+    addDemo(true);
+  });
+
+  function addDemo(clearFirst){
+    if (clearFirst){ state.items=[]; state.picked=[]; }
+    const demo = [
+      ["2. HD", "Contoh pertanyaan untuk 2. HD"],
+      ["asd", "Contoh pertanyaan untuk asd"],
+      ["psp", "Contoh pertanyaan untuk psp"],
+      ["osa", "Contoh pertanyaan untuk osa"],
+      ["1", "Sebutkan 1 hal yang kamu pelajari minggu ini."],
+      ["A", "Ceritakan 1 pencapaian kecil yang kamu banggakan."],
+      ["B", "Apa satu hal yang ingin kamu tanyakan ke tim?"],
+      ["3", "Jika bisa mengubah 1 proses kerja, apa itu?"],
+    ];
+    for (const [c,t] of demo) state.items.push({ id: crypto.randomUUID(), code:c, text:t, removed:false });
+    save(); renderAll(); announce("Contoh data ditambahkan.");
   }
 
-  function buildGlowSlice(total, winnerIndex){
-    if (!total) return "transparent";
-    const angle = 360 / total;
-    const start = winnerIndex * angle;
-    const end = start + angle;
-    return `conic-gradient(
-      rgba(255,255,255,0) 0deg ${start}deg,
-      rgba(255,255,255,.0) ${start}deg,
-      rgba(255,255,255,.70) ${start + angle*0.10}deg,
-      rgba(255,255,255,.95) ${start + angle*0.50}deg,
-      rgba(255,255,255,.70) ${start + angle*0.90}deg,
-      rgba(255,255,255,0) ${end}deg 360deg
-    )`;
-  }
+  btnClearAll.addEventListener("click", () => {
+    confirmDialog("Hapus semua data pertanyaan dan hasil?", () => {
+      state.items=[]; state.picked=[];
+      save(); renderAll();
+      ringValue.textContent = "—";
+      announce("Semua data dihapus.");
+    });
+  });
+
+  btnExport.addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "spinner-pertanyaan.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    announce("Export JSON dibuat.");
+  });
+  btnImport.addEventListener("click", () => fileImport.click());
+  fileImport.addEventListener("change", async () => {
+    const f = fileImport.files && fileImport.files[0];
+    if (!f) return;
+    try{
+      const txt = await f.text();
+      const parsed = JSON.parse(txt);
+      if (!parsed || typeof parsed !== "object") throw new Error("format");
+      if (!Array.isArray(parsed.items) || !Array.isArray(parsed.picked) || !parsed.settings) throw new Error("format");
+      state = parsed;
+      save(); renderAll();
+      announce("Import berhasil.");
+    }catch{
+      announce("Import gagal. Pastikan file JSON valid.");
+    }finally{
+      fileImport.value = "";
+    }
+  });
 
   function renderCounts(){
     countAvailable.textContent = String(availableItems().length);
     countPicked.textContent = String(state.picked.length);
     btnSpin.disabled = availableItems().length === 0 || spinning;
-  }
-
-  function renderWheel(){
-    const items = availableItems();
-    const { css } = buildWheelGradient(items);
-    wheel.style.background = css;
-    wheelGlow.style.background = "transparent";
-    wheelGlow.classList.remove("is-on");
+    centerSpin.disabled = btnSpin.disabled;
   }
 
   function escapeHtml(s){
@@ -548,8 +593,6 @@
     bankList.innerHTML = "";
     bankEmpty.hidden = items.length !== 0;
 
-    const { colors } = buildWheelGradient(items);
-
     items.forEach((it, idx) => {
       const row = document.createElement("div");
       row.className = "qrow d-flex flex-column flex-sm-row gap-2 align-items-start align-items-sm-center justify-content-between";
@@ -560,11 +603,10 @@
       const chip = document.createElement("span");
       chip.className = "code-chip";
       chip.textContent = it.code;
-      chip.style.background = colors[idx] || "hsl(200, 80%, 55%)";
+      chip.style.background = colorForIndex(idx);
 
       const text = document.createElement("div");
       text.innerHTML = `<div class="fw-semibold text-white">${escapeHtml(it.text)}</div>`;
-
       left.append(chip, text);
 
       const right = document.createElement("div");
@@ -610,7 +652,6 @@
     [...state.picked].slice().reverse().forEach((p) => {
       const row = document.createElement("div");
       row.className = "qrow";
-
       const when = new Date(p.atISO).toLocaleString();
       row.innerHTML = `
         <div class="d-flex flex-wrap gap-2 align-items-center">
@@ -624,150 +665,178 @@
     });
   }
 
-  function applySettingsUI(){
-    state.settings = Object.assign(
-      { autoRemove:true, hideBankOnSpin:true, reduceAnim:false, soundOn:false },
-      state.settings || {}
-    );
-    autoRemove.checked = !!state.settings.autoRemove;
-    hideBankOnSpin.checked = !!state.settings.hideBankOnSpin;
-    reduceAnim.checked = !!state.settings.reduceAnim;
-    soundOn.checked = !!state.settings.soundOn;
-  }
-
-  // Views
-  function goView(name){
-    document.querySelectorAll(".navbtn").forEach(btn => {
-      btn.setAttribute("aria-current", btn.dataset.view === name ? "page" : "false");
-    });
-    document.querySelectorAll("[data-view-section]").forEach(sec => {
-      sec.hidden = sec.dataset.viewSection !== name;
-    });
-  }
-
-  document.querySelectorAll(".navbtn").forEach(btn => {
-    btn.addEventListener("click", () => goView(btn.dataset.view));
-  });
-  btnGoBank.addEventListener("click", () => goView("bank"));
-  btnGoHasil.addEventListener("click", () => goView("hasil"));
-
-  // Settings listeners
-  autoRemove.addEventListener("change", () => { state.settings.autoRemove = autoRemove.checked; save(); announce(`Auto remove ${autoRemove.checked ? "aktif" : "nonaktif"}.`); });
-  hideBankOnSpin.addEventListener("change", () => { state.settings.hideBankOnSpin = hideBankOnSpin.checked; save(); announce(`Sembunyikan daftar saat spin ${hideBankOnSpin.checked ? "aktif" : "nonaktif"}.`); });
-  reduceAnim.addEventListener("change", () => { state.settings.reduceAnim = reduceAnim.checked; save(); announce(`Kurangi animasi ${reduceAnim.checked ? "aktif" : "nonaktif"}.`); });
-  soundOn.addEventListener("change", () => {
-    state.settings.soundOn = soundOn.checked;
-    save();
-    if (state.settings.soundOn) { beep(520, 0.06, 0.04, "sine"); }
-    announce(`Suara ${soundOn.checked ? "aktif" : "nonaktif"}.`);
-  });
-
-  // Add / Update
-  btnAdd.addEventListener("click", () => {
-    const code = inpCode.value.trim();
-    const text = inpText.value.trim();
-    if (!code){ announce("Kode wajib diisi."); inpCode.focus(); return; }
-    if (!text){ announce("Pertanyaan wajib diisi."); inpText.focus(); return; }
-
-    const existing = state.items.find(it => !it.removed && it.code.toLowerCase() === code.toLowerCase());
-    if (existing){
-      existing.code = code;
-      existing.text = text;
-      announce(`Pertanyaan kode ${code} diperbarui.`);
-    } else {
-      state.items.push({ id: crypto.randomUUID(), code, text, removed:false });
-      announce(`Pertanyaan kode ${code} ditambahkan.`);
-    }
-    inpCode.value = "";
-    inpText.value = "";
-    save();
-    renderAll();
-    inpCode.focus();
-  });
-
-  btnResetDemo.addEventListener("click", () => {
-    if (state.items.length){
-      confirmDialog("Tambah data contoh tanpa menghapus data yang ada?", () => addDemo(false));
-      return;
-    }
-    addDemo(true);
-  });
-
-  function addDemo(clearFirst){
-    if (clearFirst){
-      state.items = [];
-      state.picked = [];
-    }
-    const demo = [
-      ["1", "Sebutkan 1 hal yang kamu pelajari minggu ini."],
-      ["2", "Apa tantangan terbesar kamu hari ini?"],
-      ["3", "Jika bisa mengubah 1 proses kerja, apa itu?"],
-      ["4", "Apa prioritas utama minggu depan?"],
-      ["A", "Ceritakan 1 pencapaian kecil yang kamu banggakan."],
-      ["B", "Apa satu hal yang ingin kamu tanyakan ke tim?"],
-    ];
-    for (const [c,t] of demo){
-      state.items.push({ id: crypto.randomUUID(), code:c, text:t, removed:false });
-    }
-    save();
-    renderAll();
-    announce("Contoh data ditambahkan.");
-  }
-
-  btnClearAll.addEventListener("click", () => {
-    confirmDialog("Hapus semua data pertanyaan dan hasil?", () => {
-      state.items = [];
-      state.picked = [];
-      save();
-      renderAll();
-      ringValue.textContent = "—";
-      wheel.style.transform = "rotate(0deg)";
-      announce("Semua data dihapus.");
-    });
-  });
-
-  // Confirm dialog helper
+  let lastFocusEl = null;
   function confirmDialog(text, onYes){
     dlgConfirmText.textContent = text;
     lastFocusEl = document.activeElement;
     dlgConfirm.showModal();
 
-    const cleanup = () => {
-      confirmYes.onclick = null;
-      confirmNo.onclick = null;
-    };
-
-    confirmYes.onclick = () => {
-      dlgConfirm.close();
-      cleanup();
-      onYes?.();
-      restoreFocus();
-    };
-    confirmNo.onclick = () => {
-      dlgConfirm.close();
-      cleanup();
-      restoreFocus();
-    };
+    const cleanup = () => { confirmYes.onclick = null; confirmNo.onclick = null; };
+    confirmYes.onclick = () => { dlgConfirm.close(); cleanup(); onYes?.(); restoreFocus(); };
+    confirmNo.onclick = () => { dlgConfirm.close(); cleanup(); restoreFocus(); };
   }
-
   function restoreFocus(){
     (lastFocusEl && lastFocusEl.focus) ? lastFocusEl.focus() : btnSpin.focus();
   }
 
-  // Spin logic
-  async function doSpin(){
-    if (spinning) return;
+  function showQuestionDialog(item){
+    dlgCode.textContent = item.code;
+    dlgText.textContent = item.text;
+    dlgRemove.hidden = !!state.settings.autoRemove;
+
+    dlgQuestion.showModal();
+    setTimeout(() => dlgOk.focus(), 0);
+
+    dlgOk.onclick = () => { dlgQuestion.close(); btnSpin.focus(); };
+    dlgRemove.onclick = () => {
+      const it = state.items.find(x => x.id === item.id);
+      if (it) it.removed = true;
+      save(); renderAll();
+      announce(`Pertanyaan ${item.code} dihapus dari daftar.`);
+      dlgQuestion.close();
+      btnSpin.focus();
+    };
+  }
+
+  // ===== Canvas wheel =====
+  let currentAngle = 0;  // radians
+  let spinning = false;
+
+  // Glow highlight (pulse)
+  let highlightIndex = -1;
+  let highlightUntil = 0;
+
+  function fitCanvasToCSS(){
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const size = Math.floor(Math.min(rect.width, rect.height) * dpr);
+    if (canvas.width !== size || canvas.height !== size){
+      canvas.width = size;
+      canvas.height = size;
+    }
+  }
+
+  function drawWheel(now=performance.now()){
+    fitCanvasToCSS();
     const items = availableItems();
+    const w = canvas.width, h = canvas.height;
+    const cx = w/2, cy = h/2;
+    const r = Math.min(cx, cy) * 0.90;
+
+    ctx.clearRect(0,0,w,h);
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(currentAngle);
+
     if (!items.length){
-      announce("Tidak ada pertanyaan tersedia.");
+      ctx.beginPath();
+      ctx.arc(0,0,r,0,Math.PI*2);
+      ctx.fillStyle = "rgba(255,255,255,.08)";
+      ctx.fill();
+      ctx.restore();
+      requestAnimationFrame(drawWheel);
       return;
     }
 
+    const total = items.length;
+    const slice = (Math.PI*2) / total;
+
+    for (let i=0;i<total;i++){
+      const start = i*slice;
+      const end = start + slice;
+
+      const fill = colorForIndex(i);
+
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.arc(0,0,r,start,end);
+      ctx.closePath();
+      ctx.fillStyle = fill;
+      ctx.fill();
+
+      // separator
+      ctx.strokeStyle = "rgba(0,0,0,.28)";
+      ctx.lineWidth = Math.max(1, w * 0.0028);
+      ctx.stroke();
+
+      const code = String(items[i].code ?? "").trim();
+      if (code){
+        const mid = start + slice/2;
+        ctx.save();
+        ctx.rotate(mid);
+        ctx.translate(r*0.62, 0);
+        ctx.rotate(Math.PI/2); // tangential
+
+        // keep upright
+        if (mid > Math.PI/2 && mid < 3*Math.PI/2){
+          ctx.rotate(Math.PI);
+        }
+
+        const fontSize = Math.floor(w * 0.06);
+        ctx.font = `800 ${fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.lineWidth = Math.max(2, fontSize * 0.10);
+        ctx.strokeStyle = "rgba(0,0,0,.30)";
+        ctx.strokeText(code, 0, 0);
+
+        ctx.fillStyle = textColorForFill(fill);
+        ctx.fillText(code, 0, 0);
+        ctx.restore();
+      }
+    }
+
+    // Soft sheen overlay
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0,0,r,0,Math.PI*2);
+    ctx.clip();
+    const grad = ctx.createRadialGradient(-r*0.25, -r*0.35, r*0.05, 0, 0, r*1.2);
+    grad.addColorStop(0, "rgba(255,255,255,.22)");
+    grad.addColorStop(0.35, "rgba(255,255,255,.06)");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(-r, -r, r*2, r*2);
+    ctx.restore();
+
+    // Winner glow
+    if (highlightIndex >= 0 && now < highlightUntil){
+      const start = highlightIndex*slice;
+      const end = start + slice;
+
+      const left = highlightUntil - now;
+      const pulse = 0.55 + 0.35*Math.sin((left/1000)*Math.PI*4);
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0.2, Math.min(0.95, pulse));
+      ctx.shadowColor = "rgba(255,255,255,0.95)";
+      ctx.shadowBlur = Math.floor(w * 0.03);
+
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.arc(0,0,r*1.01,start,end);
+      ctx.closePath();
+      ctx.fillStyle = "rgba(255,255,255,0.65)";
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.restore();
+    requestAnimationFrame(drawWheel);
+  }
+
+  function doSpin(){
+    if (spinning) return;
+    const items = availableItems();
+    if (!items.length){ announce("Tidak ada pertanyaan tersedia."); return; }
+
     spinning = true;
     btnSpin.disabled = true;
+    centerSpin.disabled = true;
     lastFocusEl = document.activeElement;
 
-    // Hide bank during spin (optional)
     const bankSec = document.querySelector('[data-view-section="bank"]');
     const shouldHide = !!state.settings.hideBankOnSpin;
     if (shouldHide){
@@ -777,154 +846,100 @@
 
     spinStatus.textContent = "Sedang spin…";
 
-    // Winner selection
-    const winnerIndex = Math.floor(Math.random() * items.length);
+    const total = items.length;
+    const winnerIndex = cryptoInt(total);
     const winner = items[winnerIndex];
 
-    // Rotation: align winner slice center to top pointer
-    const total = items.length;
-    const slice = 360 / total;
-    const winnerCenter = (winnerIndex * slice) + (slice / 2);
-    const toTop = 270 - winnerCenter;
+    const slice = (Math.PI*2) / total;
+    const winnerCenter = (winnerIndex * slice) + (slice/2);
 
+    // Pointer is on RIGHT => 0 radians
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const extra = (state.settings.reduceAnim || prefersReduced) ? 0 : (360 * (4 + Math.floor(Math.random()*2)));
-    const target = extra + toTop;
+    const doReduced = !!state.settings.reduceAnim || prefersReduced;
 
-    // Sound + center shuffle
+    const extraSpins = doReduced ? 0 : (Math.PI*2) * (4 + cryptoInt(2)); // 4-5 spins
+    const target = currentAngle + extraSpins + (0 - winnerCenter);
+
     spinSound();
 
-    if (!state.settings.reduceAnim && !prefersReduced){
-      const steps = 12;
-      for (let i=0;i<steps;i++){
-        const it = items[Math.floor(Math.random()*items.length)];
-        ringValue.textContent = it.code;
-        await wait(70 + i*10);
+    const startA = currentAngle;
+    const delta = (target - startA);
+    const duration = doReduced ? 240 : 2200;
+    const startT = performance.now();
+
+    function easeOutBack(x){
+      const c1 = 1.70158;
+      const c3 = c1 + 1;
+      return 1 + c3*Math.pow(x-1,3) + c1*Math.pow(x-1,2);
+    }
+
+    function step(now){
+      const t = Math.min(1, (now - startT)/duration);
+      const e = doReduced ? t : easeOutBack(t);
+      currentAngle = startA + delta * e;
+
+      if (!doReduced && t < 0.9){
+        ringValue.textContent = String(items[cryptoInt(total)].code);
+      }
+
+      if (t < 1){
+        requestAnimationFrame(step);
+      } else {
+        currentAngle = target;
+        ringValue.textContent = winner.code;
+        spinStatus.textContent = `Terpilih: ${winner.code}`;
+        announce(`Hasil spin: ${winner.code}. Popup pertanyaan terbuka.`);
+        winSound();
+
+        highlightIndex = winnerIndex;
+        highlightUntil = performance.now() + 1800;
+
+        state.picked.push({ id: winner.id, code: winner.code, text: winner.text, atISO: new Date().toISOString() });
+
+        if (state.settings.autoRemove){
+          const it = state.items.find(x => x.id === winner.id);
+          if (it) it.removed = true;
+        }
+
+        save();
+        renderAll();
+        showQuestionDialog(winner);
+
+        if (shouldHide){
+          bankSec.removeAttribute("aria-hidden");
+          try { bankSec.inert = false; } catch {}
+        }
+
+        spinning = false;
+        renderCounts();
       }
     }
 
-    wheelGlow.classList.remove("is-on");
-    wheel.style.transform = `rotate(${target}deg)`;
-
-    const duration = (state.settings.reduceAnim || prefersReduced) ? 220 : 2200;
-
-    setTimeout(() => {
-      ringValue.textContent = winner.code;
-      spinStatus.textContent = `Terpilih: ${winner.code}`;
-      announce(`Hasil spin: ${winner.code}. Popup pertanyaan terbuka.`);
-      winSound();
-
-      // Glow highlight
-      wheelGlow.style.background = buildGlowSlice(total, winnerIndex);
-      wheelGlow.classList.add("is-on");
-
-      // Save result
-      state.picked.push({ id: winner.id, code: winner.code, text: winner.text, atISO: new Date().toISOString() });
-
-      if (state.settings.autoRemove){
-        const it = state.items.find(x => x.id === winner.id);
-        if (it) it.removed = true;
-      }
-
-      save();
-      renderAll();
-
-      // Show question dialog
-      showQuestionDialog(winner);
-
-      // restore bank
-      if (shouldHide){
-        bankSec.removeAttribute("aria-hidden");
-        try { bankSec.inert = false; } catch {}
-      }
-
-      spinning = false;
-      renderCounts();
-    }, duration);
+    requestAnimationFrame(step);
   }
 
-  function showQuestionDialog(item){
-    dlgCode.textContent = item.code;
-    dlgText.textContent = item.text;
+  btnSpin.addEventListener("click", doSpin);
+  centerSpin.addEventListener("click", doSpin);
+  canvas.addEventListener("click", doSpin);
 
-    dlgRemove.hidden = !!state.settings.autoRemove;
-
-    dlgQuestion.showModal();
-    setTimeout(() => dlgOk.focus(), 0);
-
-    dlgOk.onclick = () => {
-      dlgQuestion.close();
-      btnSpin.focus();
-    };
-
-    dlgRemove.onclick = () => {
-      const it = state.items.find(x => x.id === item.id);
-      if (it) it.removed = true;
-      save();
-      renderAll();
-      announce(`Pertanyaan ${item.code} dihapus dari daftar.`);
-      dlgQuestion.close();
-      btnSpin.focus();
-    };
-  }
-
-  function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
-
-  // Ctrl+Enter shortcut
   document.addEventListener("keydown", (e) => {
     if (e.ctrlKey && e.key === "Enter"){
       e.preventDefault();
       doSpin();
     }
   });
-  btnSpin.addEventListener("click", doSpin);
-
-  // Export / Import JSON
-  btnExport.addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "spinner-pertanyaan.json";
-    a.click();
-    URL.revokeObjectURL(a.href);
-    announce("Export JSON dibuat.");
-  });
-
-  btnImport.addEventListener("click", () => fileImport.click());
-  fileImport.addEventListener("change", async () => {
-    const f = fileImport.files && fileImport.files[0];
-    if (!f) return;
-    try{
-      const txt = await f.text();
-      const parsed = JSON.parse(txt);
-      if (!parsed || typeof parsed === "object" && (!Array.isArray(parsed.items) || !Array.isArray(parsed.picked) || !parsed.settings)) {
-        // fall through to error
-      }
-      if (!parsed || typeof parsed !== "object") throw new Error("format");
-      if (!Array.isArray(parsed.items) || !Array.isArray(parsed.picked) || !parsed.settings) throw new Error("format");
-      state = parsed;
-      save();
-      renderAll();
-      announce("Import berhasil.");
-    }catch{
-      announce("Import gagal. Pastikan file JSON valid.");
-    }finally{
-      fileImport.value = "";
-    }
-  });
 
   function renderAll(){
     applySettingsUI();
     renderCounts();
-    renderWheel();
     renderBank();
     renderHasil();
   }
 
-  // Init
   load();
   applySettingsUI();
   renderAll();
+  requestAnimationFrame(drawWheel);
 })();
 </script>
 
