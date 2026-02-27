@@ -17,8 +17,10 @@
     .app-wrap { max-width: 1200px; }
     .card { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); }
     .muted { color: rgba(233,238,247,.82); }
-    .form-check-label { color: rgba(233,238,247,.82); }
-
+    /* .small.muted a { color: yellow; text-decoration: none; } /* Opsional: menghapus garis bawah */ */
+    /* .small.muted a:hover { color: gold; } /* Supaya saat kursor di atasnya warna tidak hilang */ */
+    .form-check-label { color: rgba(233,238,247,.82); } /* putih dipengaturan  */
+RGBA(var(--bs-warning-rgb), var(--bs-bg-opacity, 1)) !important
     .skip-link{
       position:absolute; left:-999px; top:0; background:#fff; color:#000;
       padding:8px 10px; z-index:9999; border-radius:10px;
@@ -251,7 +253,9 @@
 
             <hr class="border-light border-opacity-25 my-3">
             <div class="small muted">
-              Copyright © 2026 <div class="small muted"><a href="https://id.linkedin.com/in/rizky-hanifudin">Rizky Hanifudin</a></div>
+              Copyright © 2026 <span class="badge text-bg-warning text-dark ms-2">
+    <a href="https://id.linkedin.com/in/rizky-hanifudin" class="text-dark text-decoration-none">Rizky Hanifudin</a>
+</span>
             </div>
           </div>
         </div>
